@@ -2,6 +2,7 @@ import pygame
 
 class Ball(pygame.sprite.Sprite):
     def __init__(self, number, window):
+        super().__init__()
         starting_pos = [100, 100]
         radius = 20
         ball_speed = [3, -3]
