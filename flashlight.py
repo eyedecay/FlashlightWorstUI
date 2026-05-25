@@ -9,6 +9,13 @@ class Flashlight(pygame.sprite.Sprite):
         screen_height (int): Overall Screen height
         radius (int): radius of light beem
         darkness: (colour)
+        COLOUR (tuple): Background colour
+        RIM_COLOUR (tuple): RIM colour RGB
+        BEAM_COLOUR (tuple): RGB for yellow
+        mask (pygame.surface):
+        beam_width_offset_left (int): half width of beam
+        beam_width_offset_right (int): half width of beam
+        light_width (int): beam pixel width
     """
     def __init__(self, screen_height, screen_width, radius = 100, darkness = 200):
         super().__init__()
@@ -18,8 +25,8 @@ class Flashlight(pygame.sprite.Sprite):
         self.darkness = darkness
 
         self.COLOUR = (128, 128, 128)
-        self.RIM = (220, 220, 220)
-        self.BEAM_COLOUR = (255, 255, 0)
+        self.RIM_COLOUR = (220, 220, 220)
+        self.BEAM_COLOUR = (255, 255, 0, 100)
 
         self.mask = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
@@ -46,7 +53,7 @@ class Flashlight(pygame.sprite.Sprite):
             x_position (int): x_position of the flashlight (horizontal)
         """
 
-        
+
         if is_on:
             beam_x = x_position - (self.light_width // 2)
             beam_surface = pygame.Surface((self.light_width, self.screen_height - 90), pygame.SRCALPHA)
@@ -69,7 +76,7 @@ class Flashlight(pygame.sprite.Sprite):
         ]
 
         pygame.draw.polygon(surface, self.COLOUR, wide_part_points)
-        pygame.draw.ellipse(surface, self.RIM, (x_position - 50, self.screen_height, 100, 20))
+        pygame.draw.ellipse(surface, self.RIM_COLOUR, (x_position - 50, self.screen_height, 100, 20))
 
 
 

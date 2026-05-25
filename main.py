@@ -3,9 +3,11 @@ from flashlight import Flashlight
 from ball import Ball
 import random
 from pygame.locals import USEREVENT
+import time
 
 WIDTH, HEIGHT = 1200, 700
 BALL_MAX = 20 # Max amount of balls on the screen at a time
+
 
 def ballCondition(num_list):
     """
@@ -20,11 +22,16 @@ def ballCondition(num_list):
             return True
     return False
 pygame.init()
+
+
+FONT = pygame.font.SysFont('Arial', 32)
+INTERVAL = 60000 #(miliseconds)
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 running = True
 
 # initialize Flashlight
-flashlight = Flashlight(screen_width = WIDTH, screen_height = HEIGHT, radius = 180, darkness = 200)
+flashlight = Flashlight(screen_width = WIDTH, screen_height = HEIGHT, radius = 180, darkness = 100)
 
 # Initialize game clock
 clock = pygame.time.Clock()
@@ -38,7 +45,21 @@ ball_group = []
 ball_counter = 0
 num_list = []
 
+
+verification_code = random.randint(100000, 999999)
+verification_on_screen = FONT.render(f"{str(verification_code)}", True, (255, 255, 255))
+last_time_change = pygame.time.get_ticks()
+
+
 while running:
+    current_time = pygame.time.get_ticks()
+
+    if current_time - last_time_change >= INTERVAL:
+        verification_code = random.randint(100000, 999999)
+
+        verification_on_screen = FONT.render(f"{str(verification_code)}", True, (255, 255, 255))
+        last_time_change = pygame.time.get_ticks()
+        
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -64,6 +85,18 @@ while running:
     mouse_click = pygame.mouse.get_pressed()
     flashlight_is_on = mouse_click[0]
     
+    text_surface = FONT.render("CODE:", True, (255, 255, 255))
+    screen.blit(text_surface, (100, 500))
+
+
+    screen.blit(verification_on_screen, (100, 600))
+
+    time_until_change = 60 - (current_time // 1000)
+    timer_text = FONT.render(f"{str(time_until_change)}", True, (255, 255, 255))
+    screen.blit(timer_text, (300, 500))
+    
+
+
     flashlight.update(WIDTH / 2, is_on=flashlight_is_on)
     flashlight.draw(screen, WIDTH/2, is_on = flashlight_is_on)
     pygame.display.flip()
