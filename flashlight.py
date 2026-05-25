@@ -21,6 +21,7 @@ class Flashlight(pygame.sprite.Sprite):
         self.RIM = (220, 220, 220)
 
         self.mask = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        
     def update(self, x_position, is_on):
         
         self.mask.fill((0,0,0, self.darkness))
