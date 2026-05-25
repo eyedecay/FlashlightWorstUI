@@ -1,23 +1,44 @@
 import pygame
+import random
+
+SCREEN_WIDTH = 1200
+SCREEN_HEIGHT = 720
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, number, window):
+    def __init__(self, number, x, y):
         super().__init__()
-        starting_pos = [100, 100]
-        radius = 20
-        ball_speed = [3, -3]
 
-        pygame.draw.circle(window, (255, 0, 0), starting_pos, radius)
+        # Initial Values of the ball
+        self.radius = 25
+        self.vector = [random.randint(-3,3), random.randint(-3,3)] # Range of speed
+    
+        # Makes sure balls are moving:
+        for i in range(2):
+            while abs(self.vector[i]) < 1:
+                self.vector[i] = random.randint(-3,3)
 
+        # Creates the balls image
+        self.image = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (139, 0, 0), (self.radius, self.radius), self.radius)
 
-        # For Later
-        """
-        #Initializes Image
-        self.image = pygame.imagae.load(f"ball{number}.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (50, 50))
-
+        # Sets the position of the ball
         self.rect = self.image.get_rect()
-        self.rect.center = starting_pos
-        """
+        self.rect.x = x
+        self.rect.bottom = y
 
+        # Sets up number on the ball
+        numberFont = pygame.font.Font(None, 32)
+        text = numberFont.render(str(number), 1, (255, 255, 255))
+        self.image.blit(text, (self.radius - text.get_width() // 2, self.radius - text.get_height() // 2))
 
+    def update(self):
+        # Moves the ball
+        self.rect.x += self.vector[0]
+        self.rect.y += self.vector[1]
+        
+        # Bounces the ball off the walls
+        if self.rect.left <= 0 or self.rect.right >= SCREEN_WIDTH - 0:
+            self.vector[0] = -self.vector[0]
+        if self.rect.top <= 0 or self.rect.bottom >= SCREEN_HEIGHT - 0:
+            self.vector[1] = -self.vector[1]
+            
