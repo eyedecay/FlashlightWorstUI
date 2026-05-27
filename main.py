@@ -4,6 +4,7 @@ from ball import Ball
 import random
 from pygame.locals import USEREVENT
 import time
+import math
 
 WIDTH, HEIGHT = 1200, 700
 BALL_MAX = 20 # Max amount of balls on the screen at a time
@@ -96,9 +97,19 @@ while running:
     screen.blit(timer_text, (300, 500))
     
 
+    mouse_click = pygame.mouse.get_pressed()
+    flashlight_is_on = mouse_click[0]
+    
+    mousePos = pygame.mouse.get_pos()
+    
+    dx = mousePos[0] - (WIDTH / 2)
+    dy = mousePos[1] - HEIGHT
+    
+    lightAngle = math.degrees(math.atan2(dy, dx)) + 90
+ 
 
     flashlight.update(WIDTH / 2, is_on=flashlight_is_on)
-    flashlight.draw(screen, WIDTH/2, is_on = flashlight_is_on)
+    flashlight.draw(screen, WIDTH/2, is_on = flashlight_is_on, angle = lightAngle)
     pygame.display.flip()
     clock.tick(60)
 pygame.quit()
