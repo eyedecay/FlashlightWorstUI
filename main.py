@@ -28,6 +28,7 @@ pygame.init()
 FONT = pygame.font.SysFont('Arial', 32)
 INTERVAL = 60000 #(miliseconds)
 
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 running = True
 
@@ -47,6 +48,7 @@ ball_counter = 0
 num_list = []
 
 
+#generate random 6-digit code
 verification_code = random.randint(100000, 999999)
 verification_on_screen = FONT.render(f"{str(verification_code)}", True, (255, 255, 255))
 last_time_change = pygame.time.get_ticks()
@@ -55,21 +57,20 @@ last_time_change = pygame.time.get_ticks()
 while running:
     current_time = pygame.time.get_ticks()
 
+    #reset code every 60 seconds
     if current_time - last_time_change >= INTERVAL:
         verification_code = random.randint(100000, 999999)
 
         verification_on_screen = FONT.render(f"{str(verification_code)}", True, (255, 255, 255))
-        last_time_change = pygame.time.get_ticks()
+        last_time_change = pygame.time.get_ticks() #set to current_time
         
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    
 
 
-            # Create ball event
-        elif (event.type == create_ball_event 
-        and (ball_counter < BALL_MAX or ballCondition(num_list))):
+        # Create ball event
+        elif (event.type == create_ball_event and (ball_counter < BALL_MAX or ballCondition(num_list))):
             ball_counter += 1 # Increases counter
             ball_number = random.randint(0,9) # Assigns random number to ball
             num_list.append(ball_number) # Adds number to list of number on the screen
@@ -92,7 +93,10 @@ while running:
 
     screen.blit(verification_on_screen, (100, 600))
 
-    time_until_change = 60 - (current_time // 1000)
+
+    #timer 
+    elapsed_time = (current_time - last_time_change) // 1000
+    time_until_change = 60 - elapsed_time
     timer_text = FONT.render(f"{str(time_until_change)}", True, (255, 255, 255))
     screen.blit(timer_text, (300, 500))
     
