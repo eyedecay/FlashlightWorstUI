@@ -9,13 +9,6 @@ class Flashlight(pygame.sprite.Sprite):
         screen_height (int): Overall Screen height
         radius (int): radius of light beem
         darkness: (colour)
-        COLOUR (tuple): Background colour
-        RIM_COLOUR (tuple): RIM colour RGB
-        BEAM_COLOUR (tuple): RGB for yellow
-        mask (pygame.surface):
-        beam_width_offset_left (int): half width of beam
-        beam_width_offset_right (int): half width of beam
-        light_width (int): beam pixel width
     """
     def __init__(self, screen_height, screen_width, radius = 100, darkness = 200):
         super().__init__()
@@ -25,14 +18,36 @@ class Flashlight(pygame.sprite.Sprite):
         self.darkness = darkness
 
         self.COLOUR = (128, 128, 128)
-        self.RIM_COLOUR = (220, 220, 220)
-        self.BEAM_COLOUR = (255, 255, 0, 100)
+        self.RIM = (220, 220, 220)
+        self.BEAM_COLOUR = (255, 255, 0)
 
         self.mask = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
         self.beam_width_offset_left = 50
         self.beam_width_offset_right = 50
         self.light_width = self.beam_width_offset_left + self.beam_width_offset_right
+
+
+        # Create image for flashlight to easily rotate
+        self.flashlight_base = pygame.Surface((100, 120), pygame.SRCALPHA)
+        # Handle
+        pygame.draw.rect(self.flashlight_base, self.COLOUR, (35, 60, 30, 60))
+        # Wide part
+        pygame.draw.polygon(self.flashlight_base, self.COLOUR, [(0, 10), (100, 10), (65, 60), (35, 60)])
+        # Rim
+        pygame.draw.ellipse(self.flashlight_base, self.RIM, (0, 0, 100, 20))
+    
+    @staticmethod
+    def rotate_polygon(points, pivot, angle):
+        """Rotates a list of points around a pivot point by an angle in degrees."""
+        pivot_vector = pygame.math.Vector2(pivot)
+        
+        rotated_points = []
+        for x, y in points:
+            rotated_vector = (pygame.math.Vector2(x, y) - pivot_vector).rotate(angle * 180) + pivot_vector
+            rotated_points.append(rotated_vector)
+        
+        return rotated_points
 
     def update(self, x_position, is_on):
         
@@ -44,7 +59,7 @@ class Flashlight(pygame.sprite.Sprite):
             pygame.draw.rect(self.mask, (0,0,0,0), (beam_x, 0, self.light_width, self.screen_height - 90))
             
     
-    def draw(self, surface, x_position, is_on):
+    def draw(self, surface, x_position, is_on, angle):
         """
         Draws the flashlight onto the bottom of the screen
 
@@ -52,31 +67,38 @@ class Flashlight(pygame.sprite.Sprite):
             surface (pygame Surface): surface it's on
             x_position (int): x_position of the flashlight (horizontal)
         """
-
-
+        
         if is_on:
+            
+            # Flashlight Beam
+            self.beam_points = [
+            (x_position - self.beam_width_offset_left, self.screen_height - 110),
+            (x_position + self.beam_width_offset_right, self.screen_height - 110),
+            (x_position + self.beam_width_offset_right + 300, -1000), # Widens out at the top
+            (x_position - self.beam_width_offset_left - 300, -1000)
+            ]
+            
+            # Rotates beam
+            rotated_beam = Flashlight.rotate_polygon(self.beam_points, (x_position, self.screen_height), angle)
+        
             beam_x = x_position - (self.light_width // 2)
             beam_surface = pygame.Surface((self.light_width, self.screen_height - 90), pygame.SRCALPHA)
-            beam_surface.fill(self.BEAM_COLOUR)
+            
+            # Draws the rotated beam onto the surface
+            pygame.draw.polygon(beam_surface, self.BEAM_COLOUR, rotated_beam)
+            
+            # Blits beam
             surface.blit(beam_surface, (beam_x, 0))
 
         surface.blit(self.mask, (0,0))
+        rotated_flashlight = pygame.transform.rotate(self.flashlight_base, -angle)
+        
+        flashlight_center = x_position
+        
+        rect = rotated_flashlight.get_rect()
+        surface.blit(rotated_flashlight, (x_position - 60, self.screen_height -150))
+  
 
-        handle_width = 40
-        handle_height = 80
-        handle_x, handle_y = x_position - (handle_width //2), self.screen_height - 50
-        pygame.draw.rect(surface, self.COLOUR, (handle_x, handle_y, handle_width, handle_height))
-
-        #wider flashlight point
-        wide_part_points = [
-            (x_position - self.beam_width_offset_left, self.screen_height - 90), 
-            (x_position + self.beam_width_offset_right, self.screen_height - 90), 
-            (x_position + 30, self.screen_height - 55), 
-            (x_position - 30, self.screen_height - 55), 
-        ]
-
-        pygame.draw.polygon(surface, self.COLOUR, wide_part_points)
-        pygame.draw.ellipse(surface, self.RIM_COLOUR, (x_position - 50, self.screen_height, 100, 20))
 
 
 
