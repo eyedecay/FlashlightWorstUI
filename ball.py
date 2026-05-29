@@ -3,13 +3,33 @@ import random
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 720
+RADIUS = 25
 
 class Ball(pygame.sprite.Sprite):
+    """
+    Ball Class for creation of balls
+
+    Attributes:
+        radius (int): Radius of ball
+        vector (list): speed
+        image (pygame.Surface): surface to hold the ball image
+        rect (image.get_rect): stores x,y coordinates of the ball
+    Methods:
+        update: moves the ball in random direction and bounces off walls
+    """
     def __init__(self, number, x, y):
+        """
+        Initializes a new ball instance
+
+        Args:
+            number (int): numerical value the ball holds
+            x (int): initial x-coordinate
+            y (int): initial y-coordinate
+        """
         super().__init__()
 
         # Initial Values of the ball
-        self.radius = 25
+        self.radius = RADIUS
         self.vector = [random.randint(-3,3), random.randint(-3,3)] # Range of speed
     
         # Makes sure balls are moving:
@@ -32,6 +52,9 @@ class Ball(pygame.sprite.Sprite):
         self.image.blit(text, (self.radius - text.get_width() // 2, self.radius - text.get_height() // 2))
 
     def update(self):
+        """
+        Updates the ball position based on velocity vectors
+        """
         # Moves the ball
         self.rect.x += self.vector[0]
         self.rect.y += self.vector[1]
