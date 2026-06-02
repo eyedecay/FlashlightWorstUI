@@ -27,38 +27,37 @@ class Flashlight(pygame.sprite.Sprite):
         self.beam_width_offset_right = 50
         self.light_width = self.beam_width_offset_left + self.beam_width_offset_right
 
-
         # Create image for flashlight to easily rotate
-        self.flashlight_base = pygame.Surface((100, 120), pygame.SRCALPHA)
-        # Handle
-        pygame.draw.rect(self.flashlight_base, self.COLOUR, (35, 60, 30, 60))
-        # Wide part
-        pygame.draw.polygon(self.flashlight_base, self.COLOUR, [(0, 10), (100, 10), (65, 60), (35, 60)])
-        # Rim
-        pygame.draw.ellipse(self.flashlight_base, self.RIM, (0, 0, 100, 20))
-    
-    @staticmethod
-    def rotate_polygon(points, pivot, angle):
-        """Rotates a list of points around a pivot point by an angle in degrees."""
-        pivot_vector = pygame.math.Vector2(pivot)
-        
-        rotated_points = []
-        for x, y in points:
-            rotated_vector = (pygame.math.Vector2(x, y) - pivot_vector).rotate(angle * 180) + pivot_vector
-            rotated_points.append(rotated_vector)
-        
-        return rotated_points
+        self.flashlight_base = pygame.Surface((100, 3 * screen_height), pygame.SRCALPHA)
 
-    def update(self, x_position, is_on):
-        
+        # Initial Positions
+        self.rotated_flashlight = self.flashlight_base
+
+    def update(self, x_position, is_on, angle):
         self.mask.fill((0,0,0, self.darkness))
 
-        
+        # Beam Surface
+        beam_length = 2 * self.screen_height
+        self.beam_surface = pygame.Surface((self.light_width, beam_length), pygame.SRCALPHA)
+        self.beam_surface.fill((255, 255, 0, 200))
+
+        # Handle
+        pygame.draw.rect(self.flashlight_base, self.COLOUR, (35, 1010, 30, 60))
+        # Wide part
+        pygame.draw.polygon(self.flashlight_base, self.COLOUR, [(0, 960), (100, 960), (65, 1010), (35, 1010)])
+        # Rim
+        pygame.draw.ellipse(self.flashlight_base, self.RIM, (0, 950, 100, 20))
+ 
+        self.flashlight_base.blit(self.beam_surface, (0, 950 - beam_length))
+       
+        self.rotated_flashlight = pygame.transform.rotate(self.flashlight_base, -angle)
+  
+        """
         if is_on:
             beam_x = x_position - (self.light_width // 2)
             pygame.draw.rect(self.mask, (0,0,0,0), (beam_x, 0, self.light_width, self.screen_height - 90))
-            
-    
+        """
+
     def draw(self, surface, x_position, is_on, angle):
         """
         Draws the flashlight onto the bottom of the screen
@@ -67,39 +66,11 @@ class Flashlight(pygame.sprite.Sprite):
             surface (pygame Surface): surface it's on
             x_position (int): x_position of the flashlight (horizontal)
         """
-        
-        if is_on:
-            
-            # Flashlight Beam
-            self.beam_points = [
-            (x_position - self.beam_width_offset_left, self.screen_height - 110),
-            (x_position + self.beam_width_offset_right, self.screen_height - 110),
-            (x_position + self.beam_width_offset_right + 300, -1000), # Widens out at the top
-            (x_position - self.beam_width_offset_left - 300, -1000)
-            ]
-            
-            # Rotates beam
-            rotated_beam = Flashlight.rotate_polygon(self.beam_points, (x_position, self.screen_height), angle)
-        
-            beam_x = x_position - (self.light_width // 2)
-            beam_surface = pygame.Surface((self.light_width, self.screen_height - 90), pygame.SRCALPHA)
-            
-            # Draws the rotated beam onto the surface
-            pygame.draw.polygon(beam_surface, self.BEAM_COLOUR, rotated_beam)
-            
-            # Blits beam
-            surface.blit(beam_surface, (beam_x, 0))
+        rect = self.rotated_flashlight.get_rect()
 
+        # Keeps the center of the flashlight the same when rotating
+        rect.center = (x_position, self.screen_height)
+        surface.blit(self.rotated_flashlight, rect.topleft)
         surface.blit(self.mask, (0,0))
-        rotated_flashlight = pygame.transform.rotate(self.flashlight_base, -angle)
+      
         
-        flashlight_center = x_position
-        
-        rect = rotated_flashlight.get_rect()
-        surface.blit(rotated_flashlight, (x_position - 60, self.screen_height -150))
-  
-
-
-
-
-
