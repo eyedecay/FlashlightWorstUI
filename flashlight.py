@@ -29,17 +29,24 @@ class Flashlight(pygame.sprite.Sprite):
 
         # Create image for flashlight to easily rotate
         self.flashlight_base = pygame.Surface((100, 3 * screen_height), pygame.SRCALPHA)
-
-        # Initial Positions
         self.rotated_flashlight = self.flashlight_base
 
-    def update(self, x_position, is_on, angle):
-        self.mask.fill((0,0,0, self.darkness))
+        self.beam_length = self.screen_height * 2
 
-        # Beam Surface
-        beam_length = 2 * self.screen_height
-        self.beam_surface = pygame.Surface((self.light_width, beam_length), pygame.SRCALPHA)
-        self.beam_surface.fill((255, 255, 0, 200))
+
+    def update(self, x_position, is_on, angle):
+        self.flashlight_base.fill((0,0,0,0))
+        if is_on:
+
+            self.mask.fill((0,0,0,0))
+            beam_surface = pygame.Surface((self.light_width, self.beam_length), pygame.SRCALPHA)
+            beam_surface.fill((255, 255, 0, 200))
+            self.flashlight_base.blit(beam_surface, (0, 950-self.beam_length))
+        else:
+            self.mask.fill((0,0,0, self.darkness))
+
+
+
 
         # Handle
         pygame.draw.rect(self.flashlight_base, self.COLOUR, (35, 1010, 30, 60))
@@ -48,15 +55,9 @@ class Flashlight(pygame.sprite.Sprite):
         # Rim
         pygame.draw.ellipse(self.flashlight_base, self.RIM, (0, 950, 100, 20))
  
-        self.flashlight_base.blit(self.beam_surface, (0, 950 - beam_length))
        
         self.rotated_flashlight = pygame.transform.rotate(self.flashlight_base, -angle)
-  
-        """
-        if is_on:
-            beam_x = x_position - (self.light_width // 2)
-            pygame.draw.rect(self.mask, (0,0,0,0), (beam_x, 0, self.light_width, self.screen_height - 90))
-        """
+
 
     def draw(self, surface, x_position, is_on, angle):
         """
