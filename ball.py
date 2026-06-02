@@ -47,6 +47,7 @@ class Ball(pygame.sprite.Sprite):
         self.rect.bottom = y
 
         # Sets up number on the ball
+        self.number = Number
         numberFont = pygame.font.Font(None, 32)
         text = numberFont.render(str(number), 1, (255, 255, 255))
         self.image.blit(text, (self.radius - text.get_width() // 2, self.radius - text.get_height() // 2))
