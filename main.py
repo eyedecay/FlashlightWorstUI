@@ -111,7 +111,7 @@ while running:
             ball_counter += 1 # Increases counter
             ball_number = random.randint(0,9) # Assigns random number to ball
             present_digits.append(ball_number) # Adds digit to list of digits on screen
-            ball = Ball(ball_number, random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)) # Creates a ball
+            ball = Ball(ball_number, random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100), screen_width=WIDTH, screen_height=HEIGHT)
             ball_group.append(ball)
 
     screen.fill((0, 0, 0))
