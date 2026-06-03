@@ -1,42 +1,70 @@
 import pygame
-from flashlight import Flashlight
-from ball import Ball
+from src.flashlight import Flashlight
+from src.ball import Ball
+from src.timer import Timer
+from src.lock import Lock
 import random
-from pygame.locals import USEREVENT
-import time
 import math
 
 WIDTH, HEIGHT = 1200, 700
-BALL_MAX = 20 # Max amount of balls on the screen at a time
+BALL_MAX = 20
+
+BEAM_HALF_ANGLE = 15
+BEAM_MAX_DIST = 700
+COLLECT_TIME = 5000
 
 
-def ballCondition(num_list):
+def ball_digit_checker(present_digits):
     """
     Checks if a number 0-9 is missing from the screen
     Args
-        num_list(list)
+        present_digits(list)
     Returns
         Boolean
     """
     for i in range(10):
-        if i not in num_list:
+        if i not in present_digits:
             return True
     return False
+
+
+def is_in_beam(ball, origin_x, origin_y, beam_angle):
+    """
+    Checks if a ball is within the flashlight beam 
+
+    Args:
+        ball (object): ball object 
+        origin_x (float): flashlight origin x
+        origin_y (float): flashlight origin y
+        beam_angle (float): direction of beam center (degrees))
+    Returns
+        bool (Whether ball is within beam)
+    """
+    dx = ball.rect.centerx - origin_x
+    dy = ball.rect.centery - origin_y
+    dist = math.sqrt(dx * dx + dy * dy)
+    if dist == 0 or dist > BEAM_MAX_DIST:
+        return False
+    ball_angle = math.degrees(math.atan2(dy, dx)) + 90
+    difference = abs((ball_angle - beam_angle + 180) % 360 - 180)
+    return difference < BEAM_HALF_ANGLE
+
+
 pygame.init()
 
 
 FONT = pygame.font.SysFont('Arial', 32)
-INTERVAL = 60000 #(miliseconds)
+VERIFICATION_FONT = pygame.font.Font(None, 120)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 running = True
 
 # initialize Flashlight
-flashlight = Flashlight(screen_width = WIDTH, screen_height = HEIGHT, radius = 180, darkness = 100)
+flashlight = Flashlight(screen_width=WIDTH, screen_height=HEIGHT, radius=180, darkness=100)
 
 # Initialize game clock
 clock = pygame.time.Clock()
-create_ball_event = USEREVENT + 1
+create_ball_event = pygame.USEREVENT + 1
 
 # Timer for the balls
 pygame.time.set_timer(create_ball_event, 1000)
@@ -44,12 +72,17 @@ pygame.time.set_timer(create_ball_event, 1000)
 # Sprite containing all the balls
 ball_group = []
 ball_counter = 0
-num_list = []
+present_digits = []
 
 
 verification_code = random.randint(100000, 999999)
-verification_on_screen = FONT.render(f"{str(verification_code)}", True, (255, 255, 255))
-last_time_change = pygame.time.get_ticks()
+lock = Lock(x=WIDTH - 150)
+lock.reset([int(d) for d in str(verification_code)])
+verification_on_screen = FONT.render(str(verification_code), True, (255, 255, 255))
+
+timer = Timer()
+ball_beam_times = {}
+game_state = "playing"
 
 # Game Loop
 while running:
@@ -57,23 +90,27 @@ while running:
     current_time = pygame.time.get_ticks()
 
     # Changes verification code, if timer runs out
-    if current_time - last_time_change >= INTERVAL:
+    if timer.expired:
         verification_code = random.randint(100000, 999999)
-
-        verification_on_screen = FONT.render(f"{str(verification_code)}", True, (255, 255, 255)) #font
-        last_time_change = pygame.time.get_ticks() # Records timer
+        lock.reset([int(d) for d in str(verification_code)])
+        verification_on_screen = FONT.render(str(verification_code), True, (255, 255, 255)) #font
+        timer.reset()
+        ball_beam_times = {}
 
     # Game Evenets
     for event in pygame.event.get():
         # Close window event
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_w and game_state == "playing":
+            #shortcut
+            lock.skip(5)
         # Create ball event
-        elif (event.type == create_ball_event 
-        and (ball_counter < BALL_MAX or ballCondition(num_list))):
+        elif (event.type == create_ball_event
+        and (ball_counter < BALL_MAX or ball_digit_checker(present_digits))):
             ball_counter += 1 # Increases counter
             ball_number = random.randint(0,9) # Assigns random number to ball
-            num_list.append(ball_number) # Adds number to list of number on the screen
+            present_digits.append(ball_number) # Adds digit to list of digits on screen
             ball = Ball(ball_number, random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)) # Creates a ball
             ball_group.append(ball)
 
@@ -94,30 +131,50 @@ while running:
     screen.blit(verification_on_screen, (100, 600))
 
     # Text display for timer
-    time_passed = (current_time - last_time_change) // 1000
-    time_until_change = 60 - time_passed
-    #lag spike prevention
-    time_until_change = max(0, time_until_change)
-    timer_text = FONT.render(f"{str(time_until_change)}", True, (255, 255, 255))
+    timer_text = FONT.render(str(timer.seconds_left), True, (255, 255, 255))
     screen.blit(timer_text, (300, 500))
 
     # Records position of users mouse
-    mousePos = pygame.mouse.get_pos()
+    mouse_pos = pygame.mouse.get_pos()
     
-    dx = mousePos[0] - (WIDTH / 2)
-    dy = mousePos[1] - HEIGHT
+    dx = mouse_pos[0] - (WIDTH / 2)
+    dy = mouse_pos[1] - HEIGHT
 
     # Calculates angle of flashlight based on user's mouse position
-    lightAngle = math.degrees(math.atan2(dy, dx)) + 90
+    light_angle = math.degrees(math.atan2(dy, dx)) + 90
 
+    if game_state == "playing":
+        if flashlight_is_on:
+            for ball in ball_group:
+                if is_in_beam(ball, WIDTH / 2, HEIGHT, light_angle):
+                    if ball not in ball_beam_times:
+                        ball_beam_times[ball] = current_time
+                    elif current_time - ball_beam_times[ball] >= COLLECT_TIME:
+                        if lock.try_collect(ball.number):
+                            del ball_beam_times[ball]
+                            #check if all digits done
+                            if lock.is_full:
+                                game_state = "verified"
+                else:
+                    ball_beam_times.pop(ball, None)
+        else:
+            ball_beam_times.clear()
 
-    # Updates flashlight
-    flashlight.update(WIDTH / 2, is_on=flashlight_is_on, angle = lightAngle)
+        lock.draw(screen)
 
-    # Draws flashlight
-    flashlight.draw(screen, WIDTH/2, is_on = flashlight_is_on, angle = lightAngle)
+        # Updates flashlight
+        flashlight.update(is_on=flashlight_is_on, angle=light_angle)
+
+        # Draws flashlight
+        flashlight.draw(screen, WIDTH / 2)
+
+    # game ends
+    elif game_state == "verified":
+        verification_text = VERIFICATION_FONT.render("VERIFIED", True, (0, 255, 0))
+        screen.blit(verification_text, (WIDTH // 2 - verification_text.get_width() // 2,
+                            HEIGHT // 2 - verification_text.get_height() // 2))
+
     pygame.display.flip()
     
     clock.tick(60)
 pygame.quit()
-
