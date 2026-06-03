@@ -17,15 +17,33 @@ COLLECT_TIME = 5000
 def ball_digit_checker(present_digits):
     """
     Checks if a number 0-9 is missing from the screen
-    Args
-        present_digits(list)
-    Returns
-        Boolean
+
+    Args:
+        present_digits(list): digits currently on screen
+
+    Returns:
+        bool: True if  >= 1 digit is missing, False if all present
     """
     for i in range(10):
         if i not in present_digits:
             return True
     return False
+
+
+def make_stupid_expression(code):
+    """
+    Stupid expression maker for the 6-digit code
+
+    Args:
+        code (int): 6-digit code
+
+    Returns:
+        str: expression
+    """
+    multiplier = random.randint(100, 999)
+    quotient = code // multiplier
+    remainder = code % multiplier
+    return f"{multiplier} * {quotient} + {remainder}"
 
 
 def is_in_beam(ball, origin_x, origin_y, beam_angle):
@@ -78,7 +96,7 @@ present_digits = []
 verification_code = random.randint(100000, 999999)
 lock = Lock(x=WIDTH - 150)
 lock.reset([int(d) for d in str(verification_code)])
-verification_on_screen = FONT.render(str(verification_code), True, (255, 255, 255))
+verification_on_screen = FONT.render(make_stupid_expression(verification_code), True, (255, 255, 255))
 
 timer = Timer()
 ball_beam_times = {}
@@ -93,7 +111,7 @@ while running:
     if timer.expired:
         verification_code = random.randint(100000, 999999)
         lock.reset([int(d) for d in str(verification_code)])
-        verification_on_screen = FONT.render(str(verification_code), True, (255, 255, 255)) #font
+        verification_on_screen = FONT.render(make_stupid_expression(verification_code), True, (255, 255, 255))
         timer.reset()
         ball_beam_times = {}
 
