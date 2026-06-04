@@ -122,7 +122,7 @@ class Flashlight(pygame.sprite.Sprite):
         Args
             surface (Surface): surface to draw on
             x_position (int): x position of flashlight
-            balls (list): group of balls to check for overlap with beam
+            balls (list(sprite)): group of balls to check for overlap with beam
         """
         surface.blit(self.mask, (0, 0))
         if self.is_on and balls:
