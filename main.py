@@ -17,18 +17,15 @@ COLLECT_TIME = 5000
 def ball_digit_checker(present_digits):
     """
     Checks if a number 0-9 is missing from the screen
-
-    Args:
-        present_digits(list): digits currently on screen
-
-    Returns:
-        bool: True if  >= 1 digit is missing, False if all present
+    Args
+        present_digits(list)
+    Returns
+        Boolean
     """
     for i in range(10):
         if i not in present_digits:
             return True
     return False
-
 
 def make_stupid_expression(code):
     """
@@ -44,7 +41,6 @@ def make_stupid_expression(code):
     quotient = code // multiplier
     remainder = code % multiplier
     return f"{multiplier} * {quotient} + {remainder}"
-
 
 def is_in_beam(ball, origin_x, origin_y, beam_angle):
     """
@@ -78,7 +74,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 running = True
 
 # initialize Flashlight
-flashlight = Flashlight(screen_width=WIDTH, screen_height=HEIGHT, darkness=100)
+flashlight = Flashlight(screen_width=WIDTH, screen_height=HEIGHT, radius=180, darkness=255)
 
 # Initialize game clock
 clock = pygame.time.Clock()
@@ -111,7 +107,7 @@ while running:
     if timer.expired:
         verification_code = random.randint(100000, 999999)
         lock.reset([int(d) for d in str(verification_code)])
-        verification_on_screen = FONT.render(make_stupid_expression(verification_code), True, (255, 255, 255))
+        verification_on_screen = FONT.render(make_stupid_expression(verification_code), True, (255, 255, 255)) #font
         timer.reset()
         ball_beam_times = {}
 
@@ -129,12 +125,12 @@ while running:
             ball_counter += 1 # Increases counter
             ball_number = random.randint(0,9) # Assigns random number to ball
             present_digits.append(ball_number) # Adds digit to list of digits on screen
-            ball = Ball(ball_number, random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100), screen_width=WIDTH, screen_height=HEIGHT)
+            ball = Ball(ball_number, random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)) # Creates a ball
             ball_group.append(ball)
 
     screen.fill((0, 0, 0))
 
-    # Displays balls
+    # Displays balls (hidden under mask when flashlight is off)
     for ball in ball_group:
         ball.update()
         screen.blit(ball.image, ball.rect)
@@ -142,15 +138,6 @@ while running:
     # Records if the user is pressing the mouse or not
     mouse_click = pygame.mouse.get_pressed()
     flashlight_is_on = mouse_click[0]
-
-    # Text display verificatoin code    
-    text_surface = FONT.render("CODE:", True, (255, 255, 255))
-    screen.blit(text_surface, (100, 500))
-    screen.blit(verification_on_screen, (100, 600))
-
-    # Text display for timer
-    timer_text = FONT.render(str(timer.seconds_left), True, (255, 255, 255))
-    screen.blit(timer_text, (300, 500))
 
     # Records position of users mouse
     mouse_pos = pygame.mouse.get_pos()
@@ -178,15 +165,26 @@ while running:
         else:
             ball_beam_times.clear()
 
-        lock.draw(screen)
-
-        # Updates flashlight
+        # Updates flashlight and draws mask over balls only
         flashlight.update(is_on=flashlight_is_on, angle=light_angle)
 
-        # Draws flashlight
-        flashlight.draw(screen, WIDTH / 2)
+        # Darkness mask
+        flashlight.draw_mask(screen, WIDTH / 2, ball_group)
+        flashlight.draw_beam(screen, WIDTH / 2)
 
-    # game ends
+        # Draw werification code and timer
+        text_surface = FONT.render("CODE:", True, (255, 255, 255))
+        screen.blit(text_surface, (100, 500))
+        screen.blit(verification_on_screen, (100, 600))
+        timer_text = FONT.render(str(timer.seconds_left), True, (255, 255, 255))
+        screen.blit(timer_text, (300, 500))
+
+        # Displays lock on the right
+        lock.draw(screen)
+
+        # Places flashlight over all objects
+        flashlight.draw_flashlight(screen, WIDTH / 2)
+
     elif game_state == "verified":
         verification_text = VERIFICATION_FONT.render("VERIFIED", True, (0, 255, 0))
         screen.blit(verification_text, (WIDTH // 2 - verification_text.get_width() // 2,
