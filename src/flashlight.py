@@ -2,19 +2,49 @@ import pygame
 
 class Flashlight(pygame.sprite.Sprite):
     """
-    Flashlight Class
+    Rotatable flashlight that projects a beam from the bottom centre of the screen.
+
+    Uses pixel-perfect masks for beam-ball intersection and a darkness overlay
+    so only beam-lit balls are visible.
+
+    Draw in order: draw_mask → draw_beam → draw_flashlight.
 
     Attributes:
         screen_width (int): Overall screen width
-        screen_height (int): Overall Screen height
-        radius (int): radius of light beem
-        darkness: (colour)
+        screen_height (int): Overall screen height
+        darkness (int): (colour)
+        is_on (bool): whether the beam is currently active
+        colour (tuple): RGB for flashlight handle/head
+        rim (tuple): RGB for the rim ellipse
+        mask (pygame.Surface): full-screen darkness overlay (SRCALPHA)
+        beam_width_offset_left (int): beam left half-width
+        beam_width_offset_right (int): beam right half-width
+        light_width (int): total beam width
+        flashlight_base (pygame.Surface): unrotated handle + head
+        rotated_flashlight (pygame.Surface): rotated handle + head
+        beam_only_base (pygame.Surface): unrotated beam 
+        beam_visual_base (pygame.Surface): unrotated translucent beam
+        rotated_beam (pygame.Surface): rotated hit-detection beam
+        rotated_beam_visual (pygame.Surface): rotated visual beam
+        beam_length (int): length 
+        beam_alpha (int): alpha 
+        beam_colour (tuple): RGBA 
+        beam_shape_surface (pygame.Surface): white fill for mask generation
+        beam_surface (pygame.Surface): yellow fill for visual beam
+        beam_pixel_mask (pygame.Mask): pixel mask for collision
+
+    Methods:
+        update(is_on, angle): rebuilds visuals
+        ball_under_beam(ball, x_position): beam-ball check
+        draw_mask(surface, x_position, balls): draw darkness 
+        draw_beam(surface, x_position): draw translucent beam 
+        draw_flashlight(surface, x_position): draw handle + head
+        _beam_rect(x_position): helper for rotated beam rect
     """
-    def __init__(self, screen_height, screen_width, radius = 100, darkness = 255):
+    def __init__(self, screen_height, screen_width, darkness=255):
         super().__init__()
         self.screen_width = screen_width
         self.screen_height = screen_height 
-        self.radius = radius 
         self.darkness = darkness
         self.is_on = False
 
@@ -53,7 +83,11 @@ class Flashlight(pygame.sprite.Sprite):
 
 
     def update(self, is_on, angle):
-        # Filling the flashlight and beam bases
+        """
+        Args:
+            is_on (bool): whether the beam is active
+            angle (float): beam direction in degrees (0 = up)
+        """
         self.is_on = is_on
         self.flashlight_base.fill((0,0,0,0))
         self.beam_only_base.fill((0,0,0,0))
@@ -94,6 +128,8 @@ class Flashlight(pygame.sprite.Sprite):
         Gets the rectangle of the rotated beam for blitting and collision detection
         Args
             x_position (int): x position of flashlight
+        Returns:
+            (rect)
         """
         rect = self.rotated_beam.get_rect()
         rect.center = (x_position, self.screen_height)

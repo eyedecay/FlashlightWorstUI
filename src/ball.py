@@ -14,6 +14,9 @@ class Ball(pygame.sprite.Sprite):
         screen_height (int): bottom boundary
         image (pygame.Surface): surface to hold the ball image
         rect (image.get_rect): stores x,y coordinates of the ball
+    
+    Methods:
+        update(self): updates the ball position to bounce off walls using velocity vectors
     """
     def __init__(self, number, x, y, screen_width=1200, screen_height=700, radius=25):
         """

@@ -74,7 +74,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 running = True
 
 # initialize Flashlight
-flashlight = Flashlight(screen_width=WIDTH, screen_height=HEIGHT, radius=180, darkness=255)
+flashlight = Flashlight(screen_width=WIDTH, screen_height=HEIGHT, darkness=255)
 
 # Initialize game clock
 clock = pygame.time.Clock()
