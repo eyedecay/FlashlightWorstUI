@@ -1,90 +1,159 @@
-import pygame
-
+import pygame 
 
 class Flashlight(pygame.sprite.Sprite):
     """
-    Flashlight that projects a rotatable beam 
+    Flashlight Class
 
     Attributes:
         screen_width (int): Overall screen width
-        screen_height (int): Overall screen height
-        beam_width (int): pixel number (width)
-        handle_length (int): pixel number (length)
-        darkness (int): colour
+        screen_height (int): Overall Screen height
+        radius (int): radius of light beem
+        darkness: (colour)
     """
-    HANDLE_WIDTH = 30
-    HEAD_HEIGHT = 60
-    HANDLE_COLOUR = (128, 128, 128)
-    RIM_COLOUR = (220, 220, 220)
-
-    def __init__(self, screen_width, screen_height, beam_width=100, handle_length=60, darkness=200):
+    def __init__(self, screen_height, screen_width, radius = 100, darkness = 255):
         super().__init__()
         self.screen_width = screen_width
-        self.screen_height = screen_height
-        self.beam_width = beam_width
-        self.handle_length = handle_length
+        self.screen_height = screen_height 
+        self.radius = radius 
         self.darkness = darkness
+        self.is_on = False
+
+        # Colours for flashlight base
+        self.colour = (128, 128, 128)
+        self.rim = (220, 220, 220)
+
 
         self.mask = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
-        base_height = 3 * screen_height
-        self.flashlight_base = pygame.Surface((beam_width, base_height), pygame.SRCALPHA)
-        self.rotated_flashlight = None
+        # Initializes beam values
+        self.beam_width_offset_left = 50
+        self.beam_width_offset_right = 50
+        self.light_width = self.beam_width_offset_left + self.beam_width_offset_right
 
-        self.beam_length = screen_height * 2
-        self.beam_surface = pygame.Surface((beam_width, self.beam_length), pygame.SRCALPHA)
-        self.beam_surface.fill((255, 255, 0, 200))
+        # Create image for flashlight to easily rotate
+        self.flashlight_base = pygame.Surface((100, 3 * screen_height), pygame.SRCALPHA)
+        self.rotated_flashlight = self.flashlight_base
 
-        centre_y = base_height // 2
-        outlet_y = centre_y - 100
-        handle_x = (beam_width - self.HANDLE_WIDTH) // 2
+        # Create beam surfaces
+        self.beam_only_base = pygame.Surface((100, 3 * screen_height), pygame.SRCALPHA)
+        self.beam_visual_base = pygame.Surface((100, 3 * screen_height), pygame.SRCALPHA)
+        self.rotated_beam = self.beam_only_base
+        self.rotated_beam_visual = None
 
-        self._outlet_y = outlet_y
-        self._handle_x = handle_x
-        self._wide_bottom = outlet_y + self.HEAD_HEIGHT
+        # Beam values
+        self.beam_length = self.screen_height * 2
+        self.beam_alpha = 90
+        self.beam_colour = (255, 255, 0, self.beam_alpha)
+
+        # Shape used for hit detection 
+        self.beam_shape_surface = pygame.Surface((self.light_width, self.beam_length), pygame.SRCALPHA)
+        self.beam_shape_surface.fill((255, 255, 255, 255))
+        self.beam_surface = pygame.Surface((self.light_width, self.beam_length), pygame.SRCALPHA)
+        self.beam_surface.fill(self.beam_colour)
+
 
     def update(self, is_on, angle):
-        """
-        Rebuilds the flashlight visual for the current frame.
+        # Filling the flashlight and beam bases
+        self.is_on = is_on
+        self.flashlight_base.fill((0,0,0,0))
+        self.beam_only_base.fill((0,0,0,0))
+        self.beam_visual_base.fill((0, 0, 0, 0))
+        self.rotated_beam_visual = None
 
-        Args:
-            is_on (bool): whether the beam is active
-            angle (float): beam direction in degrees (0 = up)
-        """
-        base = self.flashlight_base
-        base.fill((0, 0, 0, 0))
-        self.mask.fill((0, 0, 0, 0))
-
-        outlet = self._outlet_y
-        handle_x = self._handle_x
-        wide_bottom = self._wide_bottom
-        beam_width = self.beam_width
-
+        self.mask.fill((0, 0, 0, self.darkness))
         if is_on:
-            base.blit(self.beam_surface, (0, outlet - self.beam_length))
-        else:
-            self.mask.fill((0, 0, 0, self.darkness))
+            beam_y = self.screen_height + 250 - self.beam_length
+            # For hit detection, blits transparent shape 
+            self.beam_only_base.blit(self.beam_shape_surface, (0, beam_y))
 
-        # Rim
-        pygame.draw.ellipse(base, self.RIM_COLOUR, (0, outlet, beam_width, 20))
-        # Wide part — trapezoid narrowing from beam_width to HANDLE_WIDTH
-        pygame.draw.polygon(base, self.HANDLE_COLOUR, [(0, outlet + 10), (beam_width, outlet + 10), (handle_x + self.HANDLE_WIDTH, wide_bottom), (handle_x, wide_bottom)])
+            # Blits beam (coloured) onto visual base if flashlight is on
+            self.beam_visual_base.blit(self.beam_surface, (0, beam_y))
+
         # Handle
-        pygame.draw.rect(base, self.HANDLE_COLOUR, (handle_x, wide_bottom, self.HANDLE_WIDTH, self.handle_length))
+        pygame.draw.rect(self.flashlight_base, self.colour, (35, self.screen_height + 310, 30, 60))
+        # Wide part
+        pygame.draw.polygon(self.flashlight_base, self.colour, [(0, self.screen_height + 260), (100, self.screen_height + 260), (65, self.screen_height + 310), (35, self.screen_height + 310)])
+        # Rim
+        pygame.draw.ellipse(self.flashlight_base, self.rim, (0, self.screen_height + 250, 100, 20))
+ 
+        # Rotates flashlight and beam
+        self.rotated_flashlight = pygame.transform.rotate(self.flashlight_base, -angle)
+        self.rotated_beam = pygame.transform.rotate(self.beam_only_base, -angle)
 
-        self.rotated_flashlight = pygame.transform.rotate(base, -angle)
+        # Flashlight is turned on
+        if is_on:
+            self.rotated_beam_visual = pygame.transform.rotate(self.beam_visual_base, -angle)
+            # Mask to check collisions with balls
+            self.beam_pixel_mask = pygame.mask.from_surface(self.rotated_beam, threshold=1)
+        else:
+            # No collisions with balls whne beam is not on
+            self.beam_pixel_mask = None
 
-    def draw(self, surface, x_position):
+    def _beam_rect(self, x_position):
         """
-        Draws the flashlight onto the bottom 
+        Gets the rectangle of the rotated beam for blitting and collision detection
+        Args
+            x_position (int): x position of flashlight
+        """
+        rect = self.rotated_beam.get_rect()
+        rect.center = (x_position, self.screen_height)
+        return rect
 
-        Args:
-            surface (pygame Surface): surface it's on
-            x_position (int): x_position of the flashlight (horizontal)
+    def ball_under_beam(self, ball, x_position):
+        """
+        Checks intersection between ball and beam
+
+        Args
+            ball (Sprite): ball to check
+            x_position (int): x position of flashlight
+        Returns
+            self.beam_pixe_mask.overlap(tuple) if intersection or none if no intersection
+        """
+        if not self.is_on or self.beam_pixel_mask is None:
+            return False
+        beam_rect = self._beam_rect(x_position)
+        ball_mask = pygame.mask.from_surface(ball.image, threshold=1)
+        offset = (ball.rect.x - beam_rect.x, ball.rect.y - beam_rect.y)
+        return self.beam_pixel_mask.overlap(ball_mask, offset) is not None
+
+    def draw_mask(self, surface, x_position, balls=None):
+        """
+        Draws the darkness mask over balls. When on, redraws balls overlapping the beam shape 
+        Args
+            surface (Surface): surface to draw on
+            x_position (int): x position of flashlight
+            balls (list): group of balls to check for overlap with beam
+        """
+        surface.blit(self.mask, (0, 0))
+        if self.is_on and balls:
+            for ball in balls:
+                # Checks if there is intersection point
+                if self.ball_under_beam(ball, x_position):
+                    # Blits ball over, so ball is sen over mask
+                    surface.blit(ball.image, ball.rect)
+
+    def draw_beam(self, surface, x_position):
+        """
+        Draws translucent yellow beam over visible balls.
+        Args
+            surface (Surface): surface to draw on
+            x_position (int): x position of flashlight
+        Returns
+            Returns None if flashlight off, otherwise draws beam (no return value)
+        """
+        # If beam not on, return None
+        if not self.is_on:
+            return None
+        rect = self._beam_rect(x_position)
+        surface.blit(self.rotated_beam_visual, rect.topleft)
+
+    def draw_flashlight(self, surface, x_position):
+        """
+        Draws the flashlight body (handle and head)
+        Args
+            surface (Surface): surface to draw on
+            x_position (int): x position of flashlight
         """
         rect = self.rotated_flashlight.get_rect()
-
-        # Keeps the center of the flashlight the same when rotating
         rect.center = (x_position, self.screen_height)
         surface.blit(self.rotated_flashlight, rect.topleft)
-        surface.blit(self.mask, (0, 0))
