@@ -42,6 +42,15 @@ class Flashlight(pygame.sprite.Sprite):
         _beam_rect(x_position): helper for rotated beam rect
     """
     def __init__(self, screen_height, screen_width, darkness=255):
+        """
+        Args:
+            screen_height (int): height of game screen
+            screen_width (int): width of game screen
+            darkness (int): alpha value for darkness overlay
+
+        Returns:
+            None
+        """
         super().__init__()
         self.screen_width = screen_width
         self.screen_height = screen_height 
@@ -87,6 +96,8 @@ class Flashlight(pygame.sprite.Sprite):
         Args:
             is_on (bool): whether the beam is active
             angle (float): beam direction in degrees (0 = up)
+        Returns:
+            None
         """
         self.is_on = is_on
         self.flashlight_base.fill((0,0,0,0))
@@ -139,10 +150,10 @@ class Flashlight(pygame.sprite.Sprite):
         """
         Checks intersection between ball and beam
 
-        Args
+        Args:
             ball (Sprite): ball to check
             x_position (int): x position of flashlight
-        Returns
+        Returns:
             self.beam_pixe_mask.overlap(tuple) if intersection or none if no intersection
         """
         if not self.is_on or self.beam_pixel_mask is None:
@@ -155,10 +166,12 @@ class Flashlight(pygame.sprite.Sprite):
     def draw_mask(self, surface, x_position, balls=None):
         """
         Draws the darkness mask over balls. When on, redraws balls overlapping the beam shape 
-        Args
+        Args:
             surface (Surface): surface to draw on
             x_position (int): x position of flashlight
             balls (list(sprite)): group of balls to check for overlap with beam
+        Returns:
+            None
         """
         surface.blit(self.mask, (0, 0))
         if self.is_on and balls:
@@ -171,10 +184,10 @@ class Flashlight(pygame.sprite.Sprite):
     def draw_beam(self, surface, x_position):
         """
         Draws translucent yellow beam over visible balls.
-        Args
+        Args:
             surface (Surface): surface to draw on
             x_position (int): x position of flashlight
-        Returns
+        Returns:
             Returns None if flashlight off, otherwise draws beam (no return value)
         """
         # If beam not on, return None
@@ -186,9 +199,11 @@ class Flashlight(pygame.sprite.Sprite):
     def draw_flashlight(self, surface, x_position):
         """
         Draws the flashlight body (handle and head)
-        Args
+        Args:
             surface (Surface): surface to draw on
             x_position (int): x position of flashlight
+        Returns:
+            None
         """
         rect = self.rotated_flashlight.get_rect()
         rect.center = (x_position, self.screen_height)

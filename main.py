@@ -17,9 +17,9 @@ COLLECT_TIME = 5000
 def ball_digit_checker(present_digits):
     """
     Checks if a number 0-9 is missing from the screen
-    Args
+    Args:
         present_digits(list)
-    Returns
+    Returns:
         Boolean
     """
     for i in range(10):
@@ -51,7 +51,7 @@ def is_in_beam(ball, origin_x, origin_y, beam_angle):
         origin_x (float): flashlight origin x
         origin_y (float): flashlight origin y
         beam_angle (float): direction of beam center (degrees))
-    Returns
+    Returns:
         bool (Whether ball is within beam)
     """
     dx = ball.rect.centerx - origin_x
@@ -89,11 +89,13 @@ ball_counter = 0
 present_digits = []
 
 
+# Initializes verification code
 verification_code = random.randint(100000, 999999)
 lock = Lock(x=WIDTH - 150)
 lock.reset([int(d) for d in str(verification_code)])
 verification_on_screen = FONT.render(make_stupid_expression(verification_code), True, (255, 255, 255))
 
+# initialize timer
 timer = Timer()
 ball_beam_times = {}
 game_state = "playing"

@@ -39,7 +39,7 @@ class Lock:
         """
         returns the target verification code digits
 
-        Returns
+        Returns:
             (list)
         """
         return self._code_digits
@@ -49,7 +49,7 @@ class Lock:
         """
         Returns digits collected 
 
-        Returns
+        Returns:
             (list)
         """
         return list(self._collected)
@@ -59,7 +59,7 @@ class Lock:
         """
         Checks if all 6 digits have been collected
 
-        Returns
+        Returns:
             (bool)
         """
         return len(self._collected) == 6
@@ -70,7 +70,7 @@ class Lock:
 
         Args:
             digit (int): the digit 
-        Returns
+        Returns:
             (bool): if it matches
         """
         if len(self._collected) < 6 and digit == self._code_digits[len(self._collected)]:

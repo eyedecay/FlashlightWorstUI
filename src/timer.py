@@ -26,7 +26,7 @@ class Timer:
         """
         returns the countdown interval in milliseconds
 
-        Returns
+        Returns:
             (int): (miliseconds)
         """
         return self._interval
@@ -36,7 +36,7 @@ class Timer:
         """
         checks if the countdown has elapsed since last reset
 
-        Returns
+        Returns:
             (bool)
         """
         return pygame.time.get_ticks() - self._last_ticks >= self._interval
@@ -46,7 +46,7 @@ class Timer:
         """
         returns number of seconds remaining 
 
-        Returns
+        Returns:
             (int)
         """
         return max(0, (self._interval - (pygame.time.get_ticks() - self._last_ticks)) // 1000)
