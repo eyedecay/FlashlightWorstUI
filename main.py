@@ -6,7 +6,7 @@ from src.lock import Lock
 import random
 import math
 
-WIDTH, HEIGHT = 1200, 700
+WIDTH, HEIGHT = 1280, 720
 BALL_MAX = 20
 
 BEAM_HALF_ANGLE = 15
