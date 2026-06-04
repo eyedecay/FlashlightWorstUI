@@ -105,7 +105,7 @@ class Lock:
             screen (pygame.Surface): surface pygame
         """
         lock_text = self._font.render("LOCK", True, (200, 200, 200))
-        screen.blit(lock_text, (self._x, self._y - 25))
+        screen.blit(lock_text, (self._x, self._y - 35))
         for i in range(len(self._code_digits)):
             box_x = self._x
             box_y = self._y + i * (self.BOX_SIZE + self.BOX_GAP)
